@@ -141,8 +141,12 @@ celerybeat.pid
 env/
 venv/
 ENV/
+.venv/
 env.bak/
 venv.bak/
+
+# Data
+data/
 
 # Spyder project settings
 .spyderproject
