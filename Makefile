@@ -38,16 +38,16 @@ wrangle:
 		--output $(DATA_RAW) \
 		--current-year $(CURRENT_YEAR)
 
+visualize:
+	$(PY) 02_visualize.py \
+		--input $(DATA_RAW) \
+		--outdir visualizations/distributions
+
 clean_data:
 	$(PY) 03_clean.py \
 		--input $(DATA_RAW) \
 		--output $(DATA_CLEAN) \
 		--summary results/data_summary.csv
-
-visualize:
-	$(PY) 02_visualize.py \
-		--input $(DATA_RAW) \
-		--outdir visualizations/distributions
 
 survival_eda:
 	$(PY) 04_survival_eda.py \
