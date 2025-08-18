@@ -6,10 +6,10 @@ Input:
   - CSV: data/tvseries_survival.csv
 
 Output:
-  - 8 PNG figures saved in visualizations/ 
+  - 8 PNG figures saved in visualizations/distributions/ 
 
 Usage:
-  python 02_visualize.py --input data/tvseries_survival.csv --outdir visualizations
+  python 02_visualize.py --input data/tvseries_survival.csv --outdir visualizations/distributions
 """
 from __future__ import annotations
 
@@ -98,14 +98,16 @@ def plot_event_proportions(df: pd.DataFrame, outpath: Path) -> None:
     # event: 1 ended, 0 ongoing
     counts = df["event"].value_counts(dropna=False).rename(index={0: "Ongoing", 1: "Ended"})
     order = ["Ongoing", "Ended"]
+    pct = (counts.loc[order] / counts.sum()) * 100
+    df_bar = pd.DataFrame({"status": counts.loc[order].index, "pct": pct.values})
     plt.figure(figsize=(7, 5))
-    sns.barplot(x=counts.loc[order].index, y=(counts.loc[order] / counts.sum()) * 100, palette=["#72B7B2", "#F58518"])
+    sns.barplot(data=df_bar, x="status", y="pct", hue="status", palette=["#72B7B2", "#F58518"], legend=False)
     plt.ylabel("Percentage of shows (%)")
     plt.xlabel("")
     plt.title("Proportion of Shows: Ongoing vs Ended")
-    for i, val in enumerate((counts.loc[order] / counts.sum()) * 100):
-        plt.text(i, val + 1, f"{val:.1f}%", ha="center")
-    plt.ylim(0, max(((counts.loc[order] / counts.sum()) * 100).max() + 8, 30))
+    for i, val in enumerate(pct):
+        plt.text(i, float(val) + 1, f"{val:.1f}%", ha="center")
+    plt.ylim(0, max(float(pct.max()) + 8, 30))
     plt.tight_layout()
     plt.savefig(outpath, dpi=150)
     plt.close()
@@ -144,7 +146,7 @@ def plot_median_duration_top_genres(df: pd.DataFrame, outpath: Path, top_n: int 
     stats = subset.groupby("genre")["duration"].median().sort_values(ascending=False).reset_index()
 
     plt.figure(figsize=(10, 6))
-    sns.barplot(data=stats, y="genre", x="duration", palette="viridis")
+    sns.barplot(data=stats, y="genre", x="duration", hue="genre", palette="viridis", legend=False)
     plt.xlabel("Median duration (years)")
     plt.ylabel("Genre")
     plt.title("Median Duration by Top Genres")
@@ -239,7 +241,7 @@ def run_all(df: pd.DataFrame, outdir: Path) -> None:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Generate visualization figures")
     p.add_argument("--input", type=Path, default=Path("data/tvseries_survival.csv"), help="Input CSV path")
-    p.add_argument("--outdir", type=Path, default=Path("visualizations"), help="Output directory for figures")
+    p.add_argument("--outdir", type=Path, default=Path("visualizations/distributions"), help="Output directory for figures")
     return p.parse_args()
 
 
