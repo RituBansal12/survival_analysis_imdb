@@ -19,8 +19,6 @@ Analyze the “lifetimes” of TV series using the public IMDb datasets with cla
 11. [Technical Details](#technical-details)
 12. [Dependencies](#dependencies)
 13. [Notes / Limitations](#notes--limitations)
-14. [Contributing](#contributing)
-15. [License](#license)
 
 ---
 
