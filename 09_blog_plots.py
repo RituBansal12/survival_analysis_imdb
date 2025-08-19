@@ -8,6 +8,7 @@ Inputs:
 
 Outputs:
   - visualizations/survival/km_by_genre_blog.png
+  - visualizations/survival/km_by_rating_blog.png
   - visualizations/survival/hazard_shape_blog.png
   - visualizations/cox/cox_forest_blog.png
   - visualizations/parametric/overlay_blog.png
@@ -61,6 +62,14 @@ def top_genres(df: pd.DataFrame, k: int) -> List[str]:
     return vc.head(k).index.astype(str).tolist()
 
 
+def rating_groups(s: pd.Series) -> pd.Series:
+    x = pd.to_numeric(s, errors="coerce")
+    q = x.quantile([0.33, 0.66])
+    bins = [-np.inf, q.iloc[0], q.iloc[1], np.inf]
+    labels = ["Low", "Medium", "High"]
+    return pd.cut(x, bins=bins, labels=labels, include_lowest=True)
+
+
 def plot_km_by_genre_blog(df: pd.DataFrame, out_png: Path, top_k: int) -> None:
     tg = top_genres(df, top_k)
     # Assign first matching top genre
@@ -91,6 +100,32 @@ def plot_km_by_genre_blog(df: pd.DataFrame, out_png: Path, top_k: int) -> None:
     plt.close()
 
 
+def plot_km_by_rating_blog(df: pd.DataFrame, out_png: Path) -> None:
+    # KM curves for rating bands (Low/Medium/High)
+    df = df.dropna(subset=["duration", "event"]).copy()
+    df = df[(df["duration"] > 0) & (df["event"].isin([0, 1]))]
+    bands = rating_groups(df.get("averageRating")).astype("string")
+
+    plt.figure(figsize=(12, 8))
+    colors = sns.color_palette("Set2", n_colors=3)
+    order = ["Low", "Medium", "High"]
+    for name, color in zip(order, colors):
+        idx = bands == name
+        if idx.sum() < 60:
+            continue
+        kmf = KaplanMeierFitter(label=str(name))
+        kmf.fit(df.loc[idx, "duration"], event_observed=df.loc[idx, "event"])
+        kmf.plot(ci_show=False, color=color, linewidth=2.5)
+    plt.xlabel("Years since start")
+    plt.ylabel("Survival S(t)")
+    plt.title("Survival by Rating Bands (Kaplan–Meier)")
+    plt.legend(title="Rating band", ncol=3, frameon=True)
+    plt.tight_layout()
+    ensure_dir(out_png.parent)
+    plt.savefig(out_png, dpi=160)
+    plt.close()
+
+
 def plot_hazard_shape_blog(df: pd.DataFrame, out_png: Path) -> None:
     naf = NelsonAalenFitter(label="Overall")
     naf.fit(df["duration"], event_observed=df["event"])
@@ -111,9 +146,14 @@ def plot_cox_forest_blog(cox_summary_csv: Path, out_png: Path) -> None:
         print(f"[warn] Cox summary not found at {cox_summary_csv}; skipping forest plot.")
         return
     df = pd.read_csv(cox_summary_csv)
+    # Keep only genre variables
+    df = df[df["variable"].astype(str).str.startswith("genre__")].copy()
+    if df.empty:
+        print("[warn] No genre covariates found in Cox summary; skipping forest plot.")
+        return
     # Sort and prettify labels
     df = df.sort_values("HR").reset_index(drop=True)
-    labels = df["variable"].str.replace("_", " ").str.replace("genre  ", "genre:").str.replace("dec ", "decade:")
+    labels = df["variable"].str.replace(r"^genre__", "Genre: ", regex=True).str.replace("_", " ")
 
     plt.figure(figsize=(10, max(6, 0.45 * len(df) + 2)))
     y = np.arange(len(df))
@@ -191,6 +231,7 @@ def main() -> None:
     df = load_data(args.input)
 
     plot_km_by_genre_blog(df, Path("visualizations/survival/km_by_genre_blog.png"), args.top_genres)
+    plot_km_by_rating_blog(df, Path("visualizations/survival/km_by_rating_blog.png"))
     plot_hazard_shape_blog(df, Path("visualizations/survival/hazard_shape_blog.png"))
     plot_cox_forest_blog(args.cox_summary, Path("visualizations/cox/cox_forest_blog.png"))
     plot_parametric_overlay_blog(df, Path("visualizations/parametric/overlay_blog.png"))

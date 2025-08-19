@@ -75,9 +75,9 @@ Analyze the “lifetimes” of TV series using the public IMDb datasets with cla
 * Output: KM tables `results/km_tables.csv`, figures in `visualizations/survival/`
 
 #### `05_group_tests.py`
-* Purpose: Logrank tests across top genres with heatmap.
+* Purpose: Logrank tests across top genres with heatmap; also compares rating bands.
 * Input: `data/tvseries_survival_clean.csv`
-* Output: `results/logrank_tests.csv`, heatmap in `visualizations/survival/`
+* Output: `results/logrank_tests.csv`, `results/logrank_significant_pairs.csv` (significant pairs sorted by p-value), heatmap in `visualizations/survival/`
 
 #### `06_cox_model.py`
 * Purpose: Cox proportional hazards model and diagnostics.
@@ -95,7 +95,7 @@ Analyze the “lifetimes” of TV series using the public IMDb datasets with cla
 * Output: `results/validation_metrics.json`, figures in `visualizations/validation/`
 
 #### `09_blog_plots.py`
-* Purpose: Publication‑style versions of key figures (forest, hazard shape, KM by genre).
+* Purpose: Publication‑style versions of key figures (forest, hazard shape, KM by genre, KM by rating bands).
 * Input: `data/tvseries_survival_clean.csv`, `results/cox_summary.csv`
 * Output: Figures saved under `visualizations/` subfolders
 
@@ -123,7 +123,7 @@ Outputs and intermediate CSVs are also stored under `data/`.
 * `visualizations/validation/` — calibration at `T0`, bootstrap histograms (optional)
 
 Result tables in `results/`:
-* `data_summary.csv`, `km_tables.csv`, `logrank_tests.csv`, `cox_summary.csv`, `parametric_comparison.csv`, `validation_metrics.json`
+* `data_summary.csv`, `km_tables.csv`, `logrank_tests.csv`, `logrank_significant_pairs.csv`, `cox_summary.csv`, `parametric_comparison.csv`, `validation_metrics.json`
 
 ---
 
@@ -201,7 +201,7 @@ Each target maps to a script with CLI flags (see `Makefile`). For example:
 
 * Expect populated CSV/JSON artifacts in `results/` and figures across `visualizations/` subfolders.
 * Validation reports concordance and calibration at `T0` (see `results/validation_metrics.json`).
-* Use `09_blog_plots.py` outputs for publication or blogging.
+* Use `09_blog_plots.py` outputs for publication or blogging. The Cox forest blog and analysis plots show only genre covariates for clarity. Additional figure includes KM by rating bands.
 
 ---
 

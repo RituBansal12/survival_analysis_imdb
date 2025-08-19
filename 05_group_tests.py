@@ -7,6 +7,7 @@ Inputs:
 
 Outputs:
   - results/logrank_tests.csv
+  - results/logrank_significant_pairs.csv
   - visualizations/survival/logrank_pvalues_heatmap.png
 
 Usage:
@@ -176,6 +177,7 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Logrank tests between groups")
     p.add_argument("--input", type=Path, default=Path("data/tvseries_survival_clean.csv"))
     p.add_argument("--out", type=Path, default=Path("results/logrank_tests.csv"))
+    p.add_argument("--significant-out", type=Path, default=Path("results/logrank_significant_pairs.csv"))
     p.add_argument("--heatmap", type=Path, default=Path("visualizations/survival/logrank_pvalues_heatmap.png"))
     p.add_argument("--top-genres", type=int, default=8)
     return p.parse_args()
@@ -187,8 +189,19 @@ def main() -> None:
     res = compute_tests(df, args.top_genres)
     ensure_parent(args.out)
     res.to_csv(args.out, index=False)
+    # Significant pairs (genre and rating_group only), sorted by p-value
+    sig = res[res["grouping"].isin(["genre", "rating_group"])].copy()
+    sig = sig.dropna(subset=["p_value"]).sort_values("p_value")
+    # Conventional significance threshold
+    sig = sig[sig["p_value"] < 0.05]
+    ensure_parent(args.significant_out)
+    sig.to_csv(args.significant_out, index=False)
     plot_heatmap_for_genres(res, args.heatmap)
-    print(f"Wrote {len(res)} tests to {args.out} and heatmap to {args.heatmap}")
+    print(
+        f"Wrote {len(res)} tests to {args.out}, "
+        f"{len(sig)} significant pairs to {args.significant_out}, "
+        f"and heatmap to {args.heatmap}"
+    )
 
 
 if __name__ == "__main__":

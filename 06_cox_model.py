@@ -138,17 +138,24 @@ def export_summary(cph: CoxPHFitter, out_csv: Path) -> pd.DataFrame:
 
 def plot_forest(summ: pd.DataFrame, out_png: Path) -> None:
     df = summ[["variable", "HR", "HR_lower95", "HR_upper95", "p"]].copy()
+    # Keep only genre covariates
+    df = df[df["variable"].astype(str).str.startswith("genre__")].copy()
+    if df.empty:
+        print("[warn] No genre covariates in summary; skipping forest plot.")
+        return
     df = df.sort_values("HR").reset_index(drop=True)
+
+    labels = df["variable"].str.replace(r"^genre__", "Genre: ", regex=True).str.replace("_", " ")
 
     plt.figure(figsize=(8, max(5, 0.35 * len(df) + 2)))
     y = np.arange(len(df))
     plt.hlines(y, df["HR_lower95"], df["HR_upper95"], color="#4C78A8")
     plt.scatter(df["HR"], y, color="#E45756")
     plt.axvline(1.0, color="black", linestyle="--", linewidth=1)
-    plt.yticks(y, df["variable"])
+    plt.yticks(y, labels)
     plt.xscale("log")
     plt.xlabel("Hazard Ratio (log scale)")
-    plt.title("Cox PH Hazard Ratios with 95% CI")
+    plt.title("Cox PH: Genre Hazard Ratios (95% CI)")
     plt.tight_layout()
     out_png.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_png, dpi=150)
