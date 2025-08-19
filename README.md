@@ -19,6 +19,7 @@ Analyze the “lifetimes” of TV series using the public IMDb datasets with cla
 11. [Technical Details](#technical-details)
 12. [Dependencies](#dependencies)
 13. [Notes / Limitations](#notes--limitations)
+14. [Citations](#citations)
 
 ---
 
@@ -228,3 +229,15 @@ See `requirements.txt` for exact versions. Key libraries:
 * Multi‑genre labeling is simplified (top‑k genres); results may vary with different encodings.
 * Ongoing shows are right‑censored at `CURRENT_YEAR`; adjust as needed via `Makefile`.
 * Cox PH assumes proportional hazards; inspect diagnostics and interpret cautiously.
+
+---
+
+## Citations
+
+* Clark TG, Bradburn MJ, Love SB, Altman DG. Survival analysis part I: basic concepts and first analyses. Br J Cancer. 2003 Jul 21;89(2):232-8. doi: 10.1038/sj.bjc.6601118. PMID: 12865907; PMCID: PMC2394262.
+
+* Bradburn MJ, Clark TG, Love SB, Altman DG. Survival analysis part II: multivariate data analysis – an introduction to concepts and methods. Br J Cancer. 2003 Jul 21;89(3):431-6. doi: 10.1038/sj.bjc.6601119. PMID: 12865912; PMCID: PMC2394275.
+
+* Bradburn MJ, Clark TG, Love SB, Altman DG. Survival analysis part III: multivariate data analysis – choosing a model and assessing its adequacy and fit. Br J Cancer. 2003 Aug 18;89(4):605-11. doi: 10.1038/sj.bjc.6601120. PMID: 12915864; PMCID: PMC2376927.
+
+* Clark TG, Bradburn MJ, Love SB, Altman DG. Survival analysis part IV: further concepts and methods in survival analysis. Br J Cancer. 2003 Sep 1;89(5):781-6. doi: 10.1038/sj.bjc.6601117. PMID: 12942105; PMCID: PMC2394469.
