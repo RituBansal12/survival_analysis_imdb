@@ -1,47 +1,180 @@
-# survival_analysis_imdb
-Use IMDb dataset to implement survival analysis algorithms
+# IMDb TV Series Survival Analysis
 
-## Data
-Location: https://datasets.imdbws.com/
+Analyze the “lifetimes” of TV series using the public IMDb datasets with classical survival analysis methods. This repository provides an end‑to‑end, reproducible pipeline: data wrangling, exploratory survival analysis, hypothesis tests, Cox proportional hazards modeling, parametric models, validation, and publication‑ready figures.
 
-### IMDb datasets used
-Each dataset is contained in a gzipped, tab-separated-values (TSV) formatted file in the UTF-8 character set. The first line in each file contains headers that describe what is in each column. A `\N` is used to denote that a particular field is missing or null for that title/name. The datasets of interest are as follows:
+---
 
-#### title.basics.tsv
-- tconst (string) — alphanumeric unique identifier of the title
-- titleType (string) — type/format of the title (movie, short, tvseries, tvepisode, ...)
-- primaryTitle (string) — common/promotional title
-- originalTitle (string) — original language title
-- isAdult (boolean) — 0 non-adult; 1 adult
-- startYear (YYYY) — release/start year (series start year for TV)
-- endYear (YYYY) — TV series end year; `\N` otherwise
-- runtimeMinutes (int) — primary runtime in minutes
-- genres (string array) — up to three genres associated with the title
+## Table of Contents
 
-#### title.episode.tsv
-- tconst (string) — alphanumeric identifier of episode
-- parentTconst (string) — alphanumeric identifier of the parent TV Series
-- seasonNumber (int) — season number the episode belongs to
-- episodeNumber (int) — episode number in the TV series
+1. [Overview](#overview)
+2. [Articles / Publications](#articles--publications)
+3. [Project Workflow](#project-workflow)
+4. [File Structure](#file-structure)
+5. [Data Directory](#data-directory)
+6. [Visualizations / Outputs](#visualizations--outputs)
+7. [Key Concepts / Variables](#key-concepts--variables)
+8. [Installation and Setup](#installation-and-setup)
+9. [Usage](#usage)
+10. [Results / Interpretation](#results--interpretation)
+11. [Technical Details](#technical-details)
+12. [Dependencies](#dependencies)
+13. [Notes / Limitations](#notes--limitations)
+14. [Contributing](#contributing)
+15. [License](#license)
 
-#### title.ratings.tsv
-- tconst (string) — alphanumeric unique identifier of the title
-- averageRating (float) — weighted average of user ratings
-- numVotes (int) — number of votes
+---
 
-## Quickstart
+## Overview
 
-Run the full analysis (01–09) via Makefile after setting up the virtualenv:
+* **Goal**: Quantify how long TV series run, what factors are associated with ending sooner vs later, and how survival differs across genres and other attributes.
+* **Approach**: Kaplan–Meier estimates, logrank tests, Cox PH regression, and parametric survival models, implemented with `lifelines` and `scikit-learn` utilities.
+* **Highlights**:
+  - One‑command pipeline via `Makefile` (steps 01–09)
+  - Reproducible figures and result tables saved under `visualizations/` and `results/`
+  - Configurable parameters (e.g., top genres, validation settings, censoring year)
+
+---
+
+## Articles / Publications
+
+* (TBD) Add links to blog post
+
+---
+
+## Project Workflow
+
+1. **Data Collection / Extraction**: Download IMDb TSV files and derive a per‑show dataset with duration and event indicators.
+2. **Data Preprocessing / Cleaning**: Split multi‑genre strings, derive groups, remove obvious inconsistencies, summarize data.
+3. **Modeling / Analysis**: KM curves, group comparisons, Cox PH model, and parametric fits with overlays.
+4. **Evaluation / Validation**: Train/validation split, concordance, calibration at horizon `T0`, and optional bootstrap.
+5. **Visualization / Reporting**: Static figures for distributions, survival, Cox, parametric overlays, and validation.
+
+---
+
+## File Structure
+
+### Core Scripts
+
+#### `01_wrangle.py`
+* Purpose: Build per‑series dataset from IMDb TSVs; compute `duration` and `event`.
+* Input: `data/title.basics.tsv`, `data/title.ratings.tsv`, `data/title.episode.tsv`
+* Output: `data/tvseries_survival.csv`
+
+#### `02_visualize.py`
+* Purpose: Descriptive distribution plots from the raw assembled dataset.
+* Input: `data/tvseries_survival.csv`
+* Output: Figures in `visualizations/distributions/`
+
+#### `03_clean.py`
+* Purpose: Clean features, engineer groups, and summarize.
+* Input: `data/tvseries_survival.csv`
+* Output: `data/tvseries_survival_clean.csv`, `results/data_summary.csv`
+
+#### `04_survival_eda.py`
+* Purpose: KM survival curves overall and by groups; cumulative hazard.
+* Input: `data/tvseries_survival_clean.csv`
+* Output: KM tables `results/km_tables.csv`, figures in `visualizations/survival/`
+
+#### `05_group_tests.py`
+* Purpose: Logrank tests across top genres with heatmap.
+* Input: `data/tvseries_survival_clean.csv`
+* Output: `results/logrank_tests.csv`, heatmap in `visualizations/survival/`
+
+#### `06_cox_model.py`
+* Purpose: Cox proportional hazards model and diagnostics.
+* Input: `data/tvseries_survival_clean.csv`
+* Output: `results/cox_summary.csv`, figures in `visualizations/cox/`
+
+#### `07_parametric_models.py`
+* Purpose: Compare parametric survival families and overlay with KM.
+* Input: `data/tvseries_survival_clean.csv`
+* Output: `results/parametric_comparison.csv`, overlay in `visualizations/parametric/`
+
+#### `08_validate.py`
+* Purpose: Holdout validation, concordance, calibration, optional bootstrap.
+* Input: `data/tvseries_survival_clean.csv`
+* Output: `results/validation_metrics.json`, figures in `visualizations/validation/`
+
+#### `09_blog_plots.py`
+* Purpose: Publication‑style versions of key figures (forest, hazard shape, KM by genre).
+* Input: `data/tvseries_survival_clean.csv`, `results/cox_summary.csv`
+* Output: Figures saved under `visualizations/` subfolders
+
+---
+
+## Data Directory
+
+IMDb datasets: https://datasets.imdbws.com/
+
+Place the following raw files under `data/` (gzip TSVs from IMDb):
+* `title.basics.tsv` — includes `titleType`, `primaryTitle`, `startYear`, `endYear`, `genres`
+* `title.ratings.tsv` — includes `averageRating`, `numVotes`
+* `title.episode.tsv` — includes `parentTconst`, `seasonNumber`, `episodeNumber`
+
+Outputs and intermediate CSVs are also stored under `data/`.
+
+---
+
+## Visualizations / Outputs
+
+* `visualizations/distributions/` — histograms, correlations, group summaries
+* `visualizations/survival/` — KM survival, cumulative hazard, group curves
+* `visualizations/cox/` — forest plot, PH diagnostics
+* `visualizations/parametric/` — KM overlay for parametric fits
+* `visualizations/validation/` — calibration at `T0`, bootstrap histograms (optional)
+
+Result tables in `results/`:
+* `data_summary.csv`, `km_tables.csv`, `logrank_tests.csv`, `cox_summary.csv`, `parametric_comparison.csv`, `validation_metrics.json`
+
+---
+
+## Key Concepts / Variables
+
+* **event**: 1 if a series ended (`endYear` present), else 0 (censored/ongoing).
+* **duration**: If `event==1`, `endYear - startYear`; otherwise `currentYear - startYear`.
+* **groups**: Top genres, start decade, and rating bands for stratified analysis.
+* **episodes/season features**: `numEpisodes`, `maxSeason` aggregated from `title.episode.tsv`.
+
+---
+
+## Installation and Setup
+
+1. Clone and create a virtual environment
+
+   ```bash
+   git clone <repo-url>
+   cd survival_analysis_imdb
+   python -m venv .venv
+   . .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. Prepare data
+   * Download IMDb TSVs from https://datasets.imdbws.com/ and place them in `data/`
+   * Ensure filenames match exactly (e.g., `title.basics.tsv`)
+
+---
+
+## Usage
+
+### Run Complete Pipeline (recommended)
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-
-# Full pipeline (uses defaults: TOP_GENRES_SURV=8, TOP_GENRES_COX=10, TEST_SIZE=0.2, T0=5.0, BOOTSTRAP=200, CURRENT_YEAR=2025)
+# Uses defaults from Makefile: TOP_GENRES_SURV=8, TOP_GENRES_COX=10,
+# TEST_SIZE=0.2, SEED=42, T0=5.0, BOOTSTRAP=200, CURRENT_YEAR=2025
 make pipeline
+```
 
-# Or run individual steps
+Override parameters at invocation, e.g.:
+
+```bash
+make validate BOOTSTRAP=500 T0=7.5
+make pipeline CURRENT_YEAR=2024
+```
+
+### Run Individual Steps
+
+```bash
 make wrangle
 make visualize
 make clean_data
@@ -53,183 +186,47 @@ make validate
 make blog
 ```
 
-You can override parameters when invoking targets, e.g.:
+Each target maps to a script with CLI flags (see `Makefile`). For example:
 
 ```bash
-make validate BOOTSTRAP=500 T0=7.5
-# set a different current year for wrangling/censoring
-make pipeline CURRENT_YEAR=2024
+./.venv/bin/python 04_survival_eda.py \
+  --input data/tvseries_survival_clean.csv \
+  --vizdir visualizations/survival \
+  --km-table results/km_tables.csv \
+  --top-genres 8
 ```
 
-## Repository structure
+---
 
-```text
-.
-├── 01_wrangle.py
-├── 02_visualize.py
-├── 03_clean.py
-├── 04_survival_eda.py
-├── 05_group_tests.py
-├── 06_cox_model.py
-├── 07_parametric_models.py
-├── 08_validate.py
-├── 09_blog_plots.py
-├── Makefile
-├── requirements.txt
-├── README.md
-├── plan.md
-├── results/
-│   ├── data_summary.csv
-│   ├── km_tables.csv
-│   ├── logrank_tests.csv
-│   ├── cox_summary.csv
-│   ├── parametric_comparison.csv
-│   └── validation_metrics.json
-└── visualizations/
-    ├── distributions/
-    ├── survival/
-    ├── cox/
-    ├── parametric/
-    └── validation/
-```
+## Results / Interpretation
 
-## Data wrangling (01_wrangle.py)
+* Expect populated CSV/JSON artifacts in `results/` and figures across `visualizations/` subfolders.
+* Validation reports concordance and calibration at `T0` (see `results/validation_metrics.json`).
+* Use `09_blog_plots.py` outputs for publication or blogging.
 
-- __Sources__
-  - `title.basics.tsv`: filter `titleType == tvSeries`; keep `tconst`, `primaryTitle` (as `title`), `startYear`, `endYear`, `genres`.
-  - `title.ratings.tsv`: merge on `tconst`; keep `averageRating`, `numVotes`.
-  - `title.episode.tsv`: group by `parentTconst` to compute per-show aggregates.
+---
 
-- **Variables**
-  - `tconst`: unique show ID from basics.
-  - `title`: `primaryTitle` from basics.
-  - `startYear`: from basics; rows with missing are dropped.
-  - `endYear`: from basics; may be null.
-  - `event`: 1 if `endYear` present (show ended), else 0 (ongoing/censored).
-  - `duration`: if `event==1` then `endYear - startYear`; else `currentYear - startYear` (default `2025`).
-  - `genres`: raw comma-separated string (up to 3 values).
-  - `genre_1`, `genre_2`, `genre_3`: split of `genres` by comma; fewer than three values leave remaining columns null.
-  - `averageRating`, `numVotes`: from ratings; may be null.
-  - `numEpisodes`: count of episodes per show (`title.episode.tsv` grouped by `parentTconst`).
-  - `maxSeason`: max `seasonNumber` per show, ignoring missing.
+## Technical Details
 
-- **Output** 
-  - CSV: `data/tvseries_survival.csv` (UTF-8).
+* **Algorithms / Models**: Kaplan–Meier, logrank tests, Cox PH, and several standard parametric survival families.
+* **Frameworks / Tools**: `lifelines`, `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`.
+* **Implementation Notes**: One‑command orchestration via `Makefile`; seeds and key parameters are configurable as environment overrides.
 
-- **Re-run**
-  - `./.venv/bin/python 01_wrangle.py --data-dir data --output data/tvseries_survival.csv --current-year 2025`
+---
 
-## Visualization (02_visualize.py)
+## Dependencies
 
-- **Input**
-  - CSV: `data/tvseries_survival.csv` (generated by `01_wrangle.py`).
+See `requirements.txt` for exact versions. Key libraries:
+* `pandas`, `numpy`, `pyarrow`
+* `lifelines`
+* `scikit-learn`, `scipy`
+* `matplotlib`, `seaborn`
 
-- **Figures** (saved to `visualizations/distributions/`)
-  - `01_lifespan_histogram.png`
-  - `02_event_proportions.png`
-  - `03_median_duration_by_start_decade.png`
-  - `04_median_duration_top_genres.png`
-  - `05_rating_vs_duration.png`
-  - `06_numepisodes_histogram.png`
-  - `07_correlation_heatmap.png`
-  - `08_cumulative_endings_by_decade.png`
+---
 
-- **Re-run**
-  - `./.venv/bin/python 02_visualize.py --input data/tvseries_survival.csv --outdir visualizations/distributions`
+## Notes / Limitations
 
-## Cleaning (03_clean.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival.csv`
-
-- **Outputs**
-  - Cleaned CSV: `data/tvseries_survival_clean.csv`
-  - Summary: `results/data_summary.csv`
-
-- **Re-run**
-  - `./.venv/bin/python 03_clean.py --input data/tvseries_survival.csv --output data/tvseries_survival_clean.csv --summary results/data_summary.csv`
-
-## Survival EDA (04_survival_eda.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival_clean.csv`
-
-- **Figures** (saved to `visualizations/survival/`)
-  - Kaplan–Meier survival curves: overall and by groups (genre, rating group, start decade)
-  - Cumulative hazard and Nelson–Aalen cumulative hazard
-
-- **Tables**
-  - `results/km_tables.csv`
-
-- **Re-run**
-  - `./.venv/bin/python 04_survival_eda.py --input data/tvseries_survival_clean.csv --vizdir visualizations/survival --km-table results/km_tables.csv --top-genres 8`
-
-## Group tests (05_group_tests.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival_clean.csv`
-
-- **Outputs**
-  - Logrank test results: `results/logrank_tests.csv`
-  - P-value heatmap: `visualizations/survival/logrank_pvalues_heatmap.png`
-
-- **Re-run**
-  - `./.venv/bin/python 05_group_tests.py --input data/tvseries_survival_clean.csv --out results/logrank_tests.csv --heatmap visualizations/survival/logrank_pvalues_heatmap.png --top-genres 8`
-
-## Cox PH modeling (06_cox_model.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival_clean.csv`
-
-- **Figures** (saved to `visualizations/cox/`)
-  - `cox_forest.png`
-  - `schoenfeld_residuals.png`
-  - `loglog_survival_rating_groups.png`
-
-- **Tables**
-  - `results/cox_summary.csv`
-
-- **Re-run**
-  - `./.venv/bin/python 06_cox_model.py --input data/tvseries_survival_clean.csv --results results/cox_summary.csv --vizdir visualizations/cox --top-genres 10`
-
-## Parametric models (07_parametric_models.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival_clean.csv`
-
-- **Outputs**
-  - Model comparison: `results/parametric_comparison.csv`
-  - KM overlay: `visualizations/parametric/overlay_overall.png`
-
-- **Re-run**
-  - `./.venv/bin/python 07_parametric_models.py --input data/tvseries_survival_clean.csv --out results/parametric_comparison.csv --viz visualizations/parametric/overlay_overall.png`
-
-## Validation (08_validate.py)
-
-- **Input**
-  - CSV: `data/tvseries_survival_clean.csv`
-
-- **Metrics**
-  - `results/validation_metrics.json`
-
-- **Figures** (saved to `visualizations/validation/`)
-  - Calibration at time horizon T0 (`calibration_t0.png`)
-  - Bootstrap c-index histogram (if bootstraps > 0)
-
-- **Re-run**
-  - `./.venv/bin/python 08_validate.py --input data/tvseries_survival_clean.csv --metrics results/validation_metrics.json --vizdir visualizations/validation --test-size 0.2 --seed 42 --top-genres 10 --t0 5.0 --bootstrap 200`
-
-## Blog plots (09_blog_plots.py)
-
-- **Inputs**
-  - CSV: `data/tvseries_survival_clean.csv`
-  - Cox summary: `results/cox_summary.csv`
-
-- **Figures** (saved to `visualizations/` subfolders)
-  - `visualizations/cox/cox_forest_blog.png`
-  - `visualizations/survival/hazard_shape_blog.png`
-  - `visualizations/survival/km_by_genre_blog.png`
-  - `visualizations/parametric/overlay_blog.png`
-
-- **Re-run**
-  - `./.venv/bin/python 09_blog_plots.py --input data/tvseries_survival_clean.csv --top-genres 8 --cox-summary results/cox_summary.csv`
+* IMDb data are observational; many covariates relevant to show longevity are unobserved.
+* Multi‑genre labeling is simplified (top‑k genres); results may vary with different encodings.
+* Ongoing shows are right‑censored at `CURRENT_YEAR`; adjust as needed via `Makefile`.
+* Cox PH assumes proportional hazards; inspect diagnostics and interpret cautiously.
