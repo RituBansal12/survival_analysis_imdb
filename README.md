@@ -201,7 +201,7 @@ Each target maps to a script with CLI flags (see `Makefile`). For example:
 
 * Expect populated CSV/JSON artifacts in `results/` and figures across `visualizations/` subfolders.
 * Validation reports concordance and calibration at `T0` (see `results/validation_metrics.json`).
-* Use `09_blog_plots.py` outputs for publication or blogging. The Cox forest blog and analysis plots show only genre covariates for clarity. Additional figure includes KM by rating bands.
+* Use `09_blog_plots.py` outputs for publication or blogging.
 
 ---
 
