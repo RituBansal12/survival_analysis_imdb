@@ -1,8 +1,8 @@
 metric,value
-n_rows,203414.0
-n_ended,60419.0
-n_ongoing,142995.0
-prop_censored,0.7029752131121751
+n_rows,194598.0
+n_ended,52811.0
+n_ongoing,141787.0
+prop_censored,0.7286148881283466
 median_duration,7.0
 median_duration_ended,2.0
 median_duration_ongoing,10.0

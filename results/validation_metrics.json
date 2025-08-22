@@ -1,14 +1,14 @@
 {
-  "c_index_train": 0.6872085102945793,
-  "c_index_test": 0.6830727055998121,
-  "calibration_rmse_t0": 0.035270064191359515,
-  "bootstrap_mean": 0.6830029872988692,
-  "bootstrap_std": 0.00026845188468882405,
+  "c_index_train": 0.6605809699430135,
+  "c_index_test": 0.6685994884547025,
+  "calibration_rmse_t0": 0.03872807987870919,
+  "bootstrap_mean": 0.668509727282907,
+  "bootstrap_std": 0.0003459453449374703,
   "bootstrap_ci95": [
-    0.6824221826575603,
-    0.6835408239482519
+    0.6678132842218587,
+    0.6691094165829935
   ],
-  "sensitivity_c_index_test": 0.6824298727136826,
-  "n_train": 162731,
-  "n_test": 40683
+  "sensitivity_c_index_test": 0.6689855394252562,
+  "n_train": 155678,
+  "n_test": 38920
 }

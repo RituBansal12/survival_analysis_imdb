@@ -37,6 +37,8 @@ def basic_clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     # Drop missing startYear
     df = df[df["startYear"].notna()]
+    # Focus on series that began after 1975
+    df = df[df["startYear"] >= 1975]
     # Duration cleanup
     df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
     df = df[df["duration"].notna()]
