@@ -36,7 +36,7 @@ Analyze the “lifetimes” of TV series using the public IMDb datasets with cla
 
 ## Articles / Publications
 
-* (TBD) Add links to blog post
+* https://medium.com/@ritu.bansalrb00/timing-is-everything-how-survival-analysis-answers-the-when-question-562d773accf4
 
 ---
 
